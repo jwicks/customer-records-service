@@ -2,121 +2,725 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Customer Records - Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Records · Support Workspace</title>
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 24px; color: #222; }
-    h1 { font-size: 20px; }
-    input, select, button { font-size: 14px; padding: 5px; }
-    table { border-collapse: collapse; margin-top: 12px; width: 100%; }
-    th, td { border: 1px solid #bbb; padding: 6px 8px; font-size: 13px; text-align: left; }
-    th { background: #e8e8e8; }
-    tr:hover { background: #f5f5f5; cursor: pointer; }
-    #editPanel { display: none; border: 1px solid #999; padding: 14px; margin-top: 16px; max-width: 420px; background: #fafafa; }
-    #editPanel label { display: block; margin-top: 8px; font-weight: bold; font-size: 13px; }
-    #editPanel input, #editPanel select { width: 100%; box-sizing: border-box; }
-    #editPanel .row { margin-top: 12px; }
-    .muted { color: #777; font-size: 12px; }
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --border: #e4e9f1;
+      --primary: #5b5bd6;
+      --primary-dark: #4848bd;
+      --primary-soft: #eeeeff;
+      --green: #147d64;
+      --green-soft: #e7f7f1;
+      --amber: #a15c07;
+      --amber-soft: #fff3dc;
+      --red: #b42336;
+      --red-soft: #ffebee;
+      --shadow: 0 16px 45px rgba(30, 43, 70, 0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(91, 91, 214, 0.09), transparent 28rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button, select { cursor: pointer; }
+
+    .app-shell { max-width: 1500px; margin: 0 auto; padding: 0 28px 48px; }
+
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(228, 233, 241, 0.85);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 750; letter-spacing: -0.02em; }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      color: white;
+      background: linear-gradient(145deg, #6c63e8, #4848bd);
+      box-shadow: 0 8px 18px rgba(91, 91, 214, 0.24);
+    }
+
+    .workspace-label { color: var(--muted); font-size: 13px; font-weight: 600; }
+
+    .hero { padding: 38px 0 24px; }
+    .eyebrow { margin: 0 0 7px; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 40px); line-height: 1.12; letter-spacing: -0.04em; }
+    .hero-copy { margin: 10px 0 0; max-width: 620px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 17px 18px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(228, 233, 241, 0.9);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(30, 43, 70, 0.045);
+    }
+
+    .stat-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; font-weight: 800; }
+    .stat-icon.purple { color: var(--primary); background: var(--primary-soft); }
+    .stat-icon.green { color: var(--green); background: var(--green-soft); }
+    .stat-icon.amber { color: var(--amber); background: var(--amber-soft); }
+    .stat-label { display: block; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .stat-value { display: block; margin-top: 2px; font-size: 22px; font-weight: 780; letter-spacing: -0.03em; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 170px minmax(240px, 1fr) 180px auto auto;
+      gap: 12px;
+      align-items: end;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .field { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+    .field label { color: #475467; font-size: 12px; font-weight: 700; }
+
+    input, select, textarea {
+      width: 100%;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid #d6dce7;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    input, select { height: 42px; padding: 0 12px; }
+    textarea { padding: 10px 11px; line-height: 1.45; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #98a2b3; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.13);
+    }
+
+    .btn {
+      height: 42px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 720;
+      white-space: nowrap;
+      transition: transform 120ms ease, background 150ms ease, box-shadow 150ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { cursor: wait; opacity: 0.72; transform: none; }
+    .btn-primary { color: white; background: var(--primary); box-shadow: 0 7px 16px rgba(91, 91, 214, 0.2); }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { color: #475467; background: #f1f4f8; }
+    .btn-secondary:hover { background: #e9edf3; }
+
+    .table-panel { overflow: hidden; }
+    .table-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 19px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-heading h2 { margin: 0; font-size: 16px; letter-spacing: -0.015em; }
+    .table-meta { display: flex; align-items: center; gap: 9px; }
+    .result-count { padding: 5px 9px; color: var(--primary); background: var(--primary-soft); border-radius: 999px; font-size: 12px; font-weight: 750; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 1120px; border-collapse: collapse; }
+    th {
+      padding: 12px 14px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: 0.045em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+    .sort-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      font: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+    }
+    .sort-button:hover { color: var(--primary); }
+    .sort-indicator { color: var(--primary); font-size: 13px; line-height: 1; }
+    .mobile-sort {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      color: #475467;
+      background: #f1f4f8;
+      border: 0;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 720;
+    }
+    td { padding: 14px; border-bottom: 1px solid #edf0f5; font-size: 13px; vertical-align: middle; }
+    tbody tr { transition: background 130ms ease; }
+    tbody tr.customer-row:hover { background: #fafaff; }
+    tbody tr.customer-row { cursor: pointer; }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .customer { display: flex; align-items: center; gap: 10px; min-width: 160px; }
+    .avatar { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; color: var(--primary-dark); background: var(--primary-soft); border-radius: 50%; font-size: 11px; font-weight: 800; }
+    .customer-name { font-weight: 720; }
+    .contact { display: flex; flex-direction: column; gap: 3px; }
+    .contact a { color: #364152; text-decoration: none; }
+    .contact a:hover { color: var(--primary); }
+    .contact-phone { color: var(--muted); font-size: 12px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 760; text-transform: capitalize; }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-active { color: var(--green); background: var(--green-soft); }
+    .status-prospect { color: var(--amber); background: var(--amber-soft); }
+    .status-churned { color: var(--red); background: var(--red-soft); }
+
+    td.note { width: 280px; min-width: 280px; cursor: default; }
+    .note-editor { display: flex; align-items: center; gap: 7px; }
+    .note-editor textarea { min-height: 40px; max-height: 110px; background: #fbfcfe; font-size: 12px; }
+    .note-save { width: 66px; height: 36px; flex: 0 0 auto; padding: 0 9px; color: var(--primary); background: var(--primary-soft); border: 0; border-radius: 9px; font-size: 11px; font-weight: 760; }
+    .note-save:hover { background: #e3e3ff; }
+    .note-save.saved { color: var(--green); background: var(--green-soft); }
+
+    .state-row td { padding: 48px 20px; color: var(--muted); text-align: center; }
+    .state-title { display: block; margin-bottom: 5px; color: var(--text); font-weight: 720; }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      justify-content: flex-end;
+      background: rgba(20, 29, 48, 0.46);
+      backdrop-filter: blur(3px);
+    }
+    .backdrop.open { display: flex; }
+    .edit-panel {
+      width: min(480px, 100%);
+      height: 100%;
+      overflow-y: auto;
+      background: var(--surface);
+      box-shadow: -20px 0 50px rgba(18, 28, 50, 0.14);
+      animation: slide-in 180ms ease-out;
+    }
+    @keyframes slide-in { from { transform: translateX(24px); opacity: 0; } }
+    .drawer-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 25px 26px 20px; border-bottom: 1px solid var(--border); }
+    .drawer-header h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
+    .drawer-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .icon-button { width: 36px; height: 36px; border: 0; border-radius: 9px; color: var(--muted); background: #f2f4f7; font-size: 20px; line-height: 1; }
+    .drawer-body { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 14px; padding: 24px 26px; }
+    .drawer-body .full { grid-column: 1 / -1; }
+    .drawer-body textarea { min-height: 110px; }
+    .drawer-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 26px 26px; border-top: 1px solid var(--border); }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 30;
+      max-width: min(380px, calc(100vw - 32px));
+      padding: 13px 16px;
+      color: white;
+      background: #243047;
+      border-radius: 11px;
+      box-shadow: 0 16px 40px rgba(23, 32, 51, 0.24);
+      font-size: 13px;
+      font-weight: 650;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: var(--red); }
+
+    .footer-credit {
+      padding: 30px 16px 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-align: center;
+    }
+    .footer-credit strong { color: var(--text); font-weight: 760; }
+
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: 1fr 2fr; }
+      .filters .btn { width: 100%; }
+    }
+
+    @media (max-width: 760px) {
+      .table-panel { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+      .table-heading { margin-bottom: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 8px 24px rgba(30, 43, 70, 0.045); }
+      .table-scroll { overflow: visible; }
+      .mobile-sort { display: inline-flex; }
+      table { display: block; min-width: 0; }
+      thead { display: none; }
+      tbody { display: grid; gap: 12px; }
+      tbody tr.customer-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(30, 43, 70, 0.045);
+      }
+      tbody tr.customer-row:hover { background: var(--surface); }
+      td { display: block; min-width: 0; padding: 9px 10px; border: 0; }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 780;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+      }
+      td[data-label="Customer"], td[data-label="Contact"], td[data-label="Note"] { grid-column: 1 / -1; }
+      td.note { width: auto; min-width: 0; padding-top: 12px; border-top: 1px solid var(--border); }
+      .note-editor textarea { min-height: 48px; }
+      .state-row { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+      .state-row td { padding: 42px 20px; }
+      .state-row td::before { display: none; }
+    }
+
+    @media (max-width: 620px) {
+      .app-shell { padding: 0 14px 30px; }
+      .topbar { height: 62px; }
+      .workspace-label { display: none; }
+      .hero { padding-top: 28px; }
+      .hero-copy { font-size: 14px; }
+      .stats { grid-template-columns: 1fr; gap: 9px; }
+      .stat-card { padding: 13px 14px; }
+      .filters { grid-template-columns: 1fr; padding: 14px; }
+      .filters .btn { min-height: 44px; }
+      tbody tr.customer-row { grid-template-columns: 1fr; }
+      td[data-label] { grid-column: 1; }
+      td.note { grid-column: 1; }
+      .note-editor { align-items: stretch; flex-direction: column; }
+      .note-save { width: 100%; height: 40px; }
+      .drawer-body { grid-template-columns: 1fr; padding: 20px; }
+      .drawer-body .full { grid-column: auto; }
+      .drawer-header, .drawer-actions { padding-left: 20px; padding-right: 20px; }
+      .drawer-actions .btn { flex: 1; }
+      .toast { right: 16px; bottom: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>
-  <h1>Customer Records</h1>
-  <div>
-    <input id="search" placeholder="Search name, company, or email" size="40" />
-    <button onclick="loadCustomers()">Search</button>
-    <button onclick="document.getElementById('search').value='';loadCustomers()">Clear</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">CR</span><span>Customer Records</span></div>
+      <div class="workspace-label">Support workspace</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">Customer operations</p>
+        <h1>Keep every customer conversation on track.</h1>
+        <p class="hero-copy">Find customer details, update account information, and capture the notes your support team needs—all in one place.</p>
+      </section>
+
+      <section class="stats" aria-label="Customer summary">
+        <div class="stat-card">
+          <span class="stat-icon purple">#</span>
+          <div><span class="stat-label">Matching customers</span><strong class="stat-value" id="totalStat">—</strong></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon green">✓</span>
+          <div><span class="stat-label">Active accounts</span><strong class="stat-value" id="activeStat">—</strong></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon amber">◇</span>
+          <div><span class="stat-label">Prospects</span><strong class="stat-value" id="prospectStat">—</strong></div>
+        </div>
+      </section>
+
+      <section class="panel filters" aria-label="Customer filters">
+        <div class="field">
+          <label for="searchField">Search by</label>
+          <select id="searchField">
+            <option value="name">Name</option>
+            <option value="company">Company</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="search">Search term</label>
+          <input id="search" placeholder="Enter a name" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter" onchange="loadCustomers()">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="prospect">Prospect</option>
+            <option value="churned">Churned</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="searchButton" onclick="loadCustomers()">Search</button>
+        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="table-heading">
+          <h2>Customer directory</h2>
+          <div class="table-meta">
+            <button class="mobile-sort" id="mobileSortButton" onclick="toggleLastContactSort()">Last contacted <span id="mobileSortIndicator">↕</span></button>
+            <span class="result-count" id="resultCount">Loading…</span>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table id="grid">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Account manager</th>
+                <th id="lastContactedHeader" aria-sort="none">
+                  <button class="sort-button" onclick="toggleLastContactSort()">Last contacted <span class="sort-indicator" id="sortIndicator">↕</span></button>
+                </th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-credit">
+      Designed, developed and shipped by <strong>Arghya Polley</strong>
+    </footer>
   </div>
 
-  <table id="grid">
-    <thead>
-      <tr>
-        <th>Name</th><th>Company</th><th>Email</th><th>Phone</th>
-        <th>Status</th><th>Account Mgr</th><th>Last Contacted</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div id="editPanel">
-    <strong>Edit customer</strong>
-    <span class="muted" id="editId"></span>
-    <label>Name <input id="f_name" /></label>
-    <label>Company <input id="f_company" /></label>
-    <label>Email <input id="f_email" /></label>
-    <label>Phone <input id="f_phone" /></label>
-    <label>Status
-      <select id="f_status">
-        <option value="active">active</option>
-        <option value="prospect">prospect</option>
-        <option value="churned">churned</option>
-      </select>
-    </label>
-    <div class="row">
-      <button onclick="save()">Save</button>
-      <button onclick="closePanel()">Cancel</button>
-    </div>
+  <div class="backdrop" id="editBackdrop" onclick="backdropClick(event)">
+    <aside class="edit-panel" id="editPanel" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <div class="drawer-header">
+        <div>
+          <h2 id="editTitle">Edit customer</h2>
+          <p class="drawer-subtitle" id="editId"></p>
+        </div>
+        <button class="icon-button" onclick="closePanel()" aria-label="Close edit panel">×</button>
+      </div>
+      <div class="drawer-body">
+        <div class="field full"><label for="f_name">Name</label><input id="f_name" /></div>
+        <div class="field full"><label for="f_company">Company</label><input id="f_company" /></div>
+        <div class="field full"><label for="f_email">Email</label><input id="f_email" type="email" /></div>
+        <div class="field"><label for="f_phone">Phone</label><input id="f_phone" /></div>
+        <div class="field">
+          <label for="f_status">Status</label>
+          <select id="f_status">
+            <option value="active">Active</option>
+            <option value="prospect">Prospect</option>
+            <option value="churned">Churned</option>
+          </select>
+        </div>
+        <div class="field full"><label for="f_note">Note</label><textarea id="f_note" placeholder="Add context for the support team"></textarea></div>
+      </div>
+      <div class="drawer-actions">
+        <button class="btn btn-secondary" onclick="closePanel()">Cancel</button>
+        <button class="btn btn-primary" id="saveCustomerButton" onclick="save()">Save changes</button>
+      </div>
+    </aside>
   </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     let currentId = null;
+    let toastTimer = null;
+    let lastContactSort = '';
+
+    const search = document.getElementById('search');
+    const searchField = document.getElementById('searchField');
+    const statusFilter = document.getElementById('statusFilter');
+    const tbody = document.querySelector('#grid tbody');
+
+    searchField.addEventListener('change', () => {
+      search.placeholder = 'Enter a ' + searchField.options[searchField.selectedIndex].text.toLowerCase();
+      search.focus();
+    });
+
+    search.addEventListener('keydown', event => {
+      if (event.key === 'Enter') loadCustomers();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && currentId !== null) closePanel();
+    });
+
+    function clearFilters() {
+      search.value = '';
+      searchField.value = 'name';
+      statusFilter.value = '';
+      lastContactSort = '';
+      search.placeholder = 'Enter a name';
+      updateSortControls();
+      loadCustomers();
+    }
+
+    function toggleLastContactSort() {
+      lastContactSort = lastContactSort === 'desc' ? 'asc' : 'desc';
+      updateSortControls();
+      loadCustomers();
+    }
+
+    function updateSortControls() {
+      const indicator = lastContactSort === 'desc' ? '↓' : lastContactSort === 'asc' ? '↑' : '↕';
+      document.getElementById('sortIndicator').textContent = indicator;
+      document.getElementById('mobileSortIndicator').textContent = indicator;
+      document.getElementById('lastContactedHeader').setAttribute(
+        'aria-sort',
+        lastContactSort === 'desc' ? 'descending' : lastContactSort === 'asc' ? 'ascending' : 'none'
+      );
+    }
 
     async function loadCustomers() {
-      const q = document.getElementById('search').value.trim();
-      const res = await fetch('/api/customers' + (q ? '?q=' + encodeURIComponent(q) : ''));
-      const customers = await res.json();
-      const tbody = document.querySelector('#grid tbody');
+      const searchButton = document.getElementById('searchButton');
+      searchButton.disabled = true;
+      tbody.innerHTML = '<tr class="state-row"><td colspan="7"><span class="state-title">Loading customers…</span>Please wait a moment.</td></tr>';
+
+      const params = new URLSearchParams();
+      const value = search.value.trim();
+      if (value) params.set(searchField.value, value);
+      if (statusFilter.value) params.set('status', statusFilter.value);
+      if (lastContactSort) {
+        params.set('sort', 'lastContacted');
+        params.set('order', lastContactSort);
+      }
+
+      try {
+        const qs = params.toString();
+        const res = await fetch('/api/customers' + (qs ? '?' + qs : ''));
+        if (!res.ok) throw new Error('Unable to load customers');
+        const customers = await res.json();
+        renderCustomers(customers);
+      } catch (error) {
+        tbody.innerHTML = '<tr class="state-row"><td colspan="7"><span class="state-title">We could not load the directory.</span>Try again in a moment.</td></tr>';
+        document.getElementById('resultCount').textContent = 'Unavailable';
+        showToast(error.message || 'Unable to load customers', true);
+      } finally {
+        searchButton.disabled = false;
+      }
+    }
+
+    function renderCustomers(customers) {
       tbody.innerHTML = '';
+      document.getElementById('resultCount').textContent = customers.length + (customers.length === 1 ? ' customer' : ' customers');
+      document.getElementById('totalStat').textContent = customers.length;
+      document.getElementById('activeStat').textContent = customers.filter(c => c.status === 'active').length;
+      document.getElementById('prospectStat').textContent = customers.filter(c => c.status === 'prospect').length;
+
+      if (!customers.length) {
+        tbody.innerHTML = '<tr class="state-row"><td colspan="7"><span class="state-title">No customers found.</span>Try a different search term or clear the filters.</td></tr>';
+        return;
+      }
+
       for (const c of customers) {
         const tr = document.createElement('tr');
+        tr.className = 'customer-row';
+        tr.title = 'Open ' + c.name;
         tr.innerHTML =
-          '<td>' + esc(c.name) + '</td><td>' + esc(c.company) + '</td><td>' + esc(c.email) +
-          '</td><td>' + esc(c.phone) + '</td><td>' + esc(c.status) + '</td><td>' + esc(c.accountManager) +
-          '</td><td>' + esc(c.lastContacted) + '</td>';
+          '<td data-label="Customer"><div class="customer"><span class="avatar">' + esc(initials(c.name)) + '</span><span class="customer-name">' + esc(c.name) + '</span></div></td>' +
+          '<td data-label="Company">' + esc(c.company) + '</td>' +
+          '<td data-label="Contact"><div class="contact"><a href="mailto:' + esc(c.email) + '" onclick="event.stopPropagation()">' + esc(c.email) + '</a><span class="contact-phone">' + esc(c.phone) + '</span></div></td>' +
+          '<td data-label="Status"><span class="status status-' + esc(c.status) + '">' + esc(c.status) + '</span></td>' +
+          '<td data-label="Account manager">' + esc(c.accountManager) + '</td>' +
+          '<td data-label="Last contacted">' + esc(formatDate(c.lastContacted)) + '</td>';
+
+        const noteCell = document.createElement('td');
+        noteCell.className = 'note';
+        noteCell.dataset.label = 'Note';
+        const noteEditor = document.createElement('div');
+        noteEditor.className = 'note-editor';
+        const noteInput = document.createElement('textarea');
+        noteInput.value = c.note || '';
+        noteInput.placeholder = 'Write a note';
+        noteInput.rows = 2;
+        noteInput.setAttribute('aria-label', 'Note for ' + c.name);
+        noteInput.onclick = event => event.stopPropagation();
+        const saveNoteButton = document.createElement('button');
+        saveNoteButton.type = 'button';
+        saveNoteButton.className = 'note-save';
+        saveNoteButton.textContent = 'Save';
+        saveNoteButton.onclick = event => {
+          event.stopPropagation();
+          saveNote(c.id, noteInput, saveNoteButton);
+        };
+        noteEditor.appendChild(noteInput);
+        noteEditor.appendChild(saveNoteButton);
+        noteCell.appendChild(noteEditor);
+        tr.appendChild(noteCell);
         tr.onclick = () => openPanel(c);
         tbody.appendChild(tr);
       }
     }
 
+    async function saveNote(customerId, noteInput, button) {
+      button.disabled = true;
+      button.classList.remove('saved');
+      button.textContent = 'Saving';
+
+      try {
+        const res = await fetch('/api/customers/' + customerId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note: noteInput.value })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Unable to save note');
+        }
+        button.classList.add('saved');
+        button.textContent = 'Saved';
+        showToast('Note saved');
+      } catch (error) {
+        button.textContent = 'Retry';
+        showToast(error.message || 'Unable to save note', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     function openPanel(c) {
       currentId = c.id;
-      document.getElementById('editId').textContent = ' (#' + c.id + ')';
+      document.getElementById('editId').textContent = c.company + ' · Customer #' + c.id;
       document.getElementById('f_name').value = c.name || '';
       document.getElementById('f_company').value = c.company || '';
       document.getElementById('f_email').value = c.email || '';
       document.getElementById('f_phone').value = c.phone || '';
       document.getElementById('f_status').value = c.status || 'active';
-      document.getElementById('editPanel').style.display = 'block';
+      document.getElementById('f_note').value = c.note || '';
+      document.getElementById('editBackdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('f_name').focus(), 0);
     }
 
     function closePanel() {
       currentId = null;
-      document.getElementById('editPanel').style.display = 'none';
+      document.getElementById('editBackdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function backdropClick(event) {
+      if (event.target.id === 'editBackdrop') closePanel();
     }
 
     async function save() {
+      const button = document.getElementById('saveCustomerButton');
       const body = {
-        name: document.getElementById('f_name').value,
-        company: document.getElementById('f_company').value,
-        email: document.getElementById('f_email').value,
-        phone: document.getElementById('f_phone').value,
-        status: document.getElementById('f_status').value
+        name: document.getElementById('f_name').value.trim(),
+        company: document.getElementById('f_company').value.trim(),
+        email: document.getElementById('f_email').value.trim(),
+        phone: document.getElementById('f_phone').value.trim(),
+        status: document.getElementById('f_status').value,
+        note: document.getElementById('f_note').value
       };
-      const res = await fetch('/api/customers/' + currentId, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        alert('Save failed: ' + (err.error || res.status));
-        return;
+
+      button.disabled = true;
+      button.textContent = 'Saving…';
+      try {
+        const res = await fetch('/api/customers/' + currentId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Unable to save customer');
+        }
+        closePanel();
+        await loadCustomers();
+        showToast('Customer changes saved');
+      } catch (error) {
+        showToast(error.message || 'Unable to save customer', true);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Save changes';
       }
-      closePanel();
-      loadCustomers();
     }
 
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/[&<>"']/g, ch =>
-        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.className = 'toast show' + (isError ? ' error' : '');
+      toastTimer = setTimeout(() => { toast.className = 'toast'; }, 2400);
+    }
+
+    function initials(name) {
+      return String(name || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      const date = new Date(value + 'T00:00:00');
+      return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, char =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     }
 
     loadCustomers();

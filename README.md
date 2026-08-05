@@ -26,13 +26,13 @@ npm run seed:reset
 
 | Method | Path                 | Notes                              |
 |--------|----------------------|------------------------------------|
-| GET    | /api/customers       | List customers. Optional `?q=` search over name, company, email. |
+| GET    | /api/customers       | List customers. Filter with `?name=`, `?company=`, `?email=`, `?status=`, or broad search using `?q=`. Sort dates with `?sort=lastContacted&order=asc|desc`. |
 | GET    | /api/customers/:id   | Fetch one customer.                |
 | POST   | /api/customers       | Create a customer.                 |
 | PUT    | /api/customers/:id   | Update a customer.                 |
 
 Customer fields: `id`, `name`, `company`, `email`, `phone`,
-`status` (`active` | `prospect` | `churned`), `accountManager`, `lastContacted`.
+`status` (`active` | `prospect` | `churned`), `accountManager`, `lastContacted`, `note`.
 
 ## Tests
 

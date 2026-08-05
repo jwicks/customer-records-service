@@ -1,2 +1,3 @@
 node_modules/
 customers.db
+.DS_Store
