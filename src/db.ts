@@ -6,7 +6,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-const DB_PATH = path.join(__dirname, "..", "customers.db");
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "..", "customers.db");
 
 export const db = new Database(DB_PATH);
 
@@ -20,9 +20,17 @@ export function initSchema() {
       PHONE_NBR    TEXT,
       CUST_STS     TEXT,
       ACCT_MGR     TEXT,
-      LAST_CONTACT TEXT
+      LAST_CONTACT TEXT,
+      NOTE          TEXT DEFAULT ''
     );
   `);
+
+  // Existing databases predate customer notes, so add the column in place
+  // without requiring users to reset and lose their records.
+  const columns = db.prepare(`PRAGMA table_info(CUSTOMER_MASTER)`).all() as { name: string }[];
+  if (!columns.some((column) => column.name === "NOTE")) {
+    db.exec(`ALTER TABLE CUSTOMER_MASTER ADD COLUMN NOTE TEXT DEFAULT '';`);
+  }
 }
 
 const FIRST = ["Ana","Ben","Carla","Diego","Elena","Frank","Grace","Hassan","Iris","Jon","Kira","Liam","Mona","Nate","Olga","Paul","Quinn","Rosa","Sam","Tina","Umar","Vera","Will","Xena","Yusuf","Zoe","Adam","Bree","Cole","Dana"];
@@ -38,8 +46,9 @@ export function seed(reset = false) {
   if (count.n > 0) return;
 
   const insert = db.prepare(`
-    INSERT INTO CUSTOMER_MASTER (CUST_NM, CO_NM, EMAIL_ADDR, PHONE_NBR, CUST_STS, ACCT_MGR, LAST_CONTACT)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO CUSTOMER_MASTER
+      (CUST_NM, CO_NM, EMAIL_ADDR, PHONE_NBR, CUST_STS, ACCT_MGR, LAST_CONTACT, NOTE)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   for (let i = 0; i < 30; i++) {
@@ -51,7 +60,7 @@ export function seed(reset = false) {
     const mgr = MANAGERS[i % MANAGERS.length];
     const daysAgo = (i * 13) % 180;
     const lastContact = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10);
-    insert.run(name, company, email, phone, status, mgr, lastContact);
+    insert.run(name, company, email, phone, status, mgr, lastContact, "");
   }
   console.log("Seeded CUSTOMER_MASTER with 30 customers.");
 }
