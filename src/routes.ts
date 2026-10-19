@@ -51,6 +51,14 @@ function saveCustomer(req: Request, res: Response) {
       return res.status(400).json({ error: "name and company are required" });
     }
   }
+  if (req.method === "PUT") {
+    // name/company may be omitted (kept as stored) but never blanked
+    for (const key of ["name", "company"]) {
+      if (b[key] != null && !String(b[key]).trim()) {
+        return res.status(400).json({ error: `${key} must not be empty` });
+      }
+    }
+  }
   if (b.email && !String(b.email).includes("@")) {
     return res.status(400).json({ error: "email looks invalid" });
   }
@@ -58,26 +66,32 @@ function saveCustomer(req: Request, res: Response) {
     return res.status(400).json({ error: "status must be active, prospect, or churned" });
   }
 
+  // On PUT, omitted fields keep their stored values (merge onto existing row).
+  const id = req.params.id;
+  const existing: any =
+    req.method === "PUT"
+      ? db.prepare(`SELECT * FROM CUSTOMER_MASTER WHERE CUST_ID = ?`).get(id)
+      : null;
+  if (req.method === "PUT" && !existing) {
+    return res.status(404).json({ error: "customer not found" });
+  }
+  const prev = existing || {};
+
   // --- map API fields to legacy columns ---
   // NOTE: legacy export job expects every column present on write (FS-1142),
   // so we always build the full record.
   const record = {
-    CUST_NM: b.name ?? "",
-    CO_NM: b.company ?? "",
-    EMAIL_ADDR: b.email ?? "",
-    PHONE_NBR: b.phone ?? "",
-    CUST_STS: b.status ?? "",
-    ACCT_MGR: b.accountManager ?? "",
-    LAST_CONTACT: b.lastContacted ?? "",
+    CUST_NM: b.name ?? prev.CUST_NM ?? "",
+    CO_NM: b.company ?? prev.CO_NM ?? "",
+    EMAIL_ADDR: b.email ?? prev.EMAIL_ADDR ?? "",
+    PHONE_NBR: b.phone ?? prev.PHONE_NBR ?? "",
+    CUST_STS: b.status ?? prev.CUST_STS ?? "",
+    ACCT_MGR: b.accountManager ?? prev.ACCT_MGR ?? "",
+    LAST_CONTACT: b.lastContacted ?? prev.LAST_CONTACT ?? "",
   };
 
   // --- persistence ---
   if (req.method === "PUT") {
-    const id = req.params.id;
-    const existing = db
-      .prepare(`SELECT CUST_ID FROM CUSTOMER_MASTER WHERE CUST_ID = ?`)
-      .get(id);
-    if (!existing) return res.status(404).json({ error: "customer not found" });
 
     db.prepare(
       `UPDATE CUSTOMER_MASTER
